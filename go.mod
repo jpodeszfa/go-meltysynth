@@ -1,3 +1,3 @@
-module github.com/sinshu/go-meltysynth
+module github.com/jpodeszfa/go-meltysynth
 
 go 1.19
