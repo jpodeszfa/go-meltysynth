@@ -64,7 +64,7 @@ func run() error {
 func simpleChord(soundFont *meltysynth.SoundFont, outputFile string) error {
 	// Create the synthesizer.
 	settings := meltysynth.NewSynthesizerSettings(44100)
-	synthesizer, err := meltysynth.NewSynthesizer(soundFont, settings)
+	synthesizer, err := meltysynth.NewSynthesizer([]*meltysynth.SoundFont{soundFont}, settings)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func simpleChord(soundFont *meltysynth.SoundFont, outputFile string) error {
 func midi(soundFont *meltysynth.SoundFont, midiFilePath string, outputFile string) error {
 	// Create the synthesizer.
 	settings := meltysynth.NewSynthesizerSettings(44100)
-	synthesizer, err := meltysynth.NewSynthesizer(soundFont, settings)
+	synthesizer, err := meltysynth.NewSynthesizer([]*meltysynth.SoundFont{soundFont}, settings)
 	if err != nil {
 		return err
 	}

@@ -13,6 +13,7 @@ type Preset struct {
 	Genre       int32
 	Morphology  int32
 	Regions     []*PresetRegion
+	SoundFont   int
 }
 
 func createPreset(info *presetInfo, zones []*zone, instruments []*Instrument) (*Preset, error) {

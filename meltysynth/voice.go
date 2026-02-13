@@ -83,7 +83,7 @@ func newVoice(s *Synthesizer) *voice {
 	}
 }
 
-func (v *voice) start(region regionPair, channel int32, key int32, velocity int32) {
+func (v *voice) start(region regionPair, channel int32, key int32, velocity int32, sf int) {
 	v.exclusiveClass = region.GetExclusiveClass()
 	v.channel = channel
 	v.key = key
@@ -122,7 +122,7 @@ func (v *voice) start(region regionPair, channel int32, key int32, velocity int3
 	v.modEnv.startByRegion(region, key, velocity)
 	v.vibLfo.startVibrato(region, key, velocity)
 	v.modLfo.startModulation(region, key, velocity)
-	v.oscillator.startByRegion(v.synthesizer.SoundFont.WaveData, region)
+	v.oscillator.startByRegion(v.synthesizer.SoundFont[sf].WaveData, region)
 	v.filter.clearBuffer()
 	v.filter.setLowPassFilter(v.cutoff, v.resonance)
 

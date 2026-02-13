@@ -10,7 +10,7 @@ const (
 )
 
 type Synthesizer struct {
-	SoundFont             *SoundFont
+	SoundFont             []*SoundFont
 	SampleRate            int32
 	BlockSize             int32
 	MaximumPolyphony      int32
@@ -46,7 +46,7 @@ type Synthesizer struct {
 	chorusOutputRight []float32
 }
 
-func NewSynthesizer(sf *SoundFont, settings *SynthesizerSettings) (*Synthesizer, error) {
+func NewSynthesizer(sf []*SoundFont, settings *SynthesizerSettings) (*Synthesizer, error) {
 	err := settings.validate()
 	if err != nil {
 		return nil, err
@@ -65,20 +65,23 @@ func NewSynthesizer(sf *SoundFont, settings *SynthesizerSettings) (*Synthesizer,
 	result.presetLookup = make(map[int32]*Preset)
 
 	minPresetId := int32(math.MaxInt32)
-	for i := 0; i < len(sf.Presets); i++ {
-		preset := sf.Presets[i]
-		// The preset ID is Int32, where the upper 16 bits represent the bank number
-		// and the lower 16 bits represent the patch number.
-		// This ID is used to search for presets by the combination of bank number
-		// and patch number.
-		presetId := (preset.BankNumber << 16) | preset.PatchNumber
-		result.presetLookup[presetId] = preset
+	for i := 0; i < len(sf); i++ {
+		for j := 0; j < len(sf[i].Presets); j++ {
+			preset := sf[i].Presets[j]
+			preset.SoundFont = i
+			// The preset ID is Int32, where the upper 16 bits represent the bank number
+			// and the lower 16 bits represent the patch number.
+			// This ID is used to search for presets by the combination of bank number
+			// and patch number.
+			presetId := (preset.BankNumber << 16) | preset.PatchNumber
+			result.presetLookup[presetId] = preset
 
-		// The preset with the minimum ID number will be default.
-		// If the SoundFont is GM compatible, the piano will be chosen.
-		if presetId < minPresetId {
-			result.defaultPreset = preset
-			minPresetId = presetId
+			// The preset with the minimum ID number will be default.
+			// If the SoundFont is GM compatible, the piano will be chosen.
+			if presetId < minPresetId && i == 0 {
+				result.defaultPreset = preset
+				minPresetId = presetId
+			}
 		}
 	}
 
@@ -253,7 +256,7 @@ func (s *Synthesizer) NoteOn(channel int32, key int32, velocity int32) {
 
 					voice := s.voices.requestNew(instrumentRegion, channel)
 					if voice != nil {
-						voice.start(regionPair, channel, key, velocity)
+						voice.start(regionPair, channel, key, velocity, preset.SoundFont)
 					}
 				}
 			}
