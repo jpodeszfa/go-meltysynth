@@ -1,5 +1,11 @@
 package meltysynth
 
+const (
+	dat_None uint8 = 0
+	dat_Rpn  uint8 = 1
+	dat_Nrpn uint8 = 2
+)
+
 type channel struct {
 	synthesizer         *Synthesizer
 	isPercussionChannel bool
@@ -22,6 +28,8 @@ type channel struct {
 	fineTune       int16
 
 	pitchBend float32
+
+	lastDataType uint8
 }
 
 func newChannel(s *Synthesizer, isPercussionChannel bool) *channel {
@@ -59,6 +67,8 @@ func (ch *channel) reset() {
 	ch.fineTune = 8192
 
 	ch.pitchBend = 0
+
+	ch.lastDataType = dat_None
 }
 
 func (ch *channel) resetAllControllers() {
@@ -129,13 +139,27 @@ func (ch *channel) setChorusSend(value int32) {
 
 func (ch *channel) setRpnCoarse(value int32) {
 	ch.rpn = int16((int32(ch.rpn) & 0x7F) | (value << 7))
+	ch.lastDataType = dat_Rpn
 }
 
 func (ch *channel) setRpnFine(value int32) {
 	ch.rpn = int16((int32(ch.rpn) & 0xFF80) | value)
+	ch.lastDataType = dat_Rpn
+}
+
+func (ch *channel) setNrpnCoarse(value int32) {
+	ch.lastDataType = dat_Nrpn
+}
+
+func (ch *channel) setNrpnFine(value int32) {
+	ch.lastDataType = dat_Nrpn
 }
 
 func (ch *channel) dataEntryCoarse(value int32) {
+	if ch.lastDataType != dat_Rpn {
+		return
+	}
+
 	switch ch.rpn {
 	case 0:
 		ch.pitchBendRange = int16((int32(ch.pitchBendRange) & 0x7F) | (value << 7))
@@ -147,6 +171,10 @@ func (ch *channel) dataEntryCoarse(value int32) {
 }
 
 func (ch *channel) dataEntryFine(value int32) {
+	if ch.lastDataType != dat_Rpn {
+		return
+	}
+
 	switch ch.rpn {
 	case 0:
 		ch.pitchBendRange = int16((int32(ch.pitchBendRange) & 0xFF80) | value)
